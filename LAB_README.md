@@ -50,13 +50,21 @@ Generate it once before the first run:
 ```
 
 > **How Podman is wired in.** Quarkus Dev Services uses Testcontainers
-> (docker-java) to auto-start Postgres and Kafka. Podman forwards the Docker API
-> on the `//./pipe/docker_engine` named pipe, so docker-java talks to Podman
-> transparently — no `DOCKER_HOST` needed once `podman machine` is running.
-> The one incompatibility is **Ryuk** (Testcontainers' reaper), which fails on
-> rootless Podman (`Can not connect to Ryuk ... Connection refused`); it's
-> disabled via `src/main/resources/testcontainers.properties`, which both Maven
-> and Gradle pick up automatically. Dev Services clean up their own containers.
+> (docker-java) to auto-start Postgres and Kafka. With `podman machine` running,
+> Podman forwards the Docker API on the `//./pipe/docker_engine` named pipe, so
+> docker-java finds it automatically — the most common "it can't find Docker"
+> error just means the Podman machine is stopped (`podman machine start`).
+>
+> The one incompatibility is **Ryuk** (Testcontainers' reaper), which won't run
+> on rootless Podman. Ryuk can only be disabled with the
+> `TESTCONTAINERS_RYUK_DISABLED=true` **environment variable** (Testcontainers
+> ignores a `ryuk.disabled` properties entry). It's set in three places so every
+> workflow is covered without any manual shell setup:
+> - **Maven** `test`/`verify` → surefire/failsafe `<environmentVariables>` in `pom.xml`
+> - **Gradle** `test`/`build` → `tasks.withType(Test) { environment ... }` in `build.gradle`
+> - **Dev mode / IDE** → a persistent user environment variable on this machine
+>
+> Dev Services clean up their own containers, so Ryuk isn't needed.
 
 ---
 

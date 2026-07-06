@@ -48,3 +48,9 @@ compileJava {
 compileTestJava {
     options.encoding = 'UTF-8'
 }
+
+// Rootless Podman can't run the Testcontainers Ryuk reaper reliably, so the
+// Dev Services containers used by tests must run without it.
+tasks.withType(Test).configureEach {
+    environment 'TESTCONTAINERS_RYUK_DISABLED', 'true'
+}
