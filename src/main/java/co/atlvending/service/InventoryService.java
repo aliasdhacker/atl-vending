@@ -3,31 +3,37 @@ package co.atlvending.service;
 import co.atlvending.domain.Machine;
 import co.atlvending.domain.MachineStatus;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Lab 03 — business logic extracted from the resource layer into a CDI bean.
- * Data is still in-memory; Lab 05 switches this to Panache/Postgres.
+ * Lab 05 — the service now reads/writes machines through Hibernate ORM +
+ * Panache instead of an in-memory list. Writes are @Transactional.
  */
 @ApplicationScoped
 public class InventoryService {
 
-    private static final List<Machine> MACHINES = List.of(
-            new Machine(1L, "Concourse A Gate 12", MachineStatus.ONLINE),
-            new Machine(2L, "Concourse B Gate 8", MachineStatus.OFFLINE),
-            new Machine(3L, "Downtown Lobby 1", MachineStatus.ONLINE));
-
     public List<Machine> all() {
-        return MACHINES;
+        return Machine.listAll();
     }
 
     public List<Machine> byStatus(MachineStatus status) {
-        return MACHINES.stream().filter(m -> m.status() == status).toList();
+        return Machine.list("status", status);
     }
 
     public Optional<Machine> find(Long id) {
-        return MACHINES.stream().filter(m -> m.id().equals(id)).findFirst();
+        return Optional.ofNullable(Machine.findById(id));
+    }
+
+    public long count() {
+        return Machine.count();
+    }
+
+    @Transactional
+    public Machine create(Machine m) {
+        m.persist();
+        return m;
     }
 }
