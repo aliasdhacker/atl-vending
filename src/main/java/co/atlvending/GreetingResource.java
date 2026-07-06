@@ -5,12 +5,16 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/hello")
+/**
+ * Lab 01 — Project Setup + Dev Mode.
+ * The @Path was changed from "/hello" to "/welcome" to demonstrate hot reload.
+ */
+@Path("/welcome")
 public class GreetingResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello from Quarkus REST";
+    public String welcome() {
+        return "Welcome to Atlanta Vending Co.";
     }
 }
