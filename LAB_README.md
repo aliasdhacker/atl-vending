@@ -62,9 +62,19 @@ Generate it once before the first run:
 
 ## Run it
 
+This project ships **both** a Maven and a Gradle build — use whichever you prefer.
+They share the same `src/`, `application.properties`, and Podman wiring.
+
+**Maven:**
 ```bash
 cd C:/Users/andre/Quarkus/atl-vending
 ./mvnw quarkus:dev
+```
+
+**Gradle:**
+```bash
+cd C:/Users/andre/Quarkus/atl-vending
+./gradlew quarkusDev
 ```
 
 On startup Quarkus (via Podman) spins up a throwaway **Postgres** and a
@@ -144,14 +154,26 @@ curl localhost:8080/q/metrics | grep sales_recorded
 
 ## Build / test / package
 
+**Maven:**
 ```bash
 ./mvnw verify                       # unit + integration tests (uses Podman Dev Services)
 ./mvnw package                      # runnable JAR in target/quarkus-app/
 ./mvnw package -Dquarkus.container-image.build=true   # build image with Jib (no daemon)
-
-# Native (Lab 11) — builds inside a Podman builder container:
-./mvnw package -Pnative -Dquarkus.native.container-build=true
+./mvnw package -Pnative -Dquarkus.native.container-build=true   # native (Podman builder)
 ```
+
+**Gradle** (equivalent tasks):
+```bash
+./gradlew build                     # compile + test (uses Podman Dev Services)
+./gradlew quarkusBuild              # runnable JAR in build/quarkus-app/
+./gradlew build -Dquarkus.container-image.build=true            # build image with Jib
+./gradlew build -Dquarkus.package.jar.type=uber-jar            # uber-jar, etc.
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true  # native
+```
+
+> Both builds read the same `src/main/resources/application.properties`, so the
+> Podman env vars above apply identically. Maven outputs to `target/`, Gradle to
+> `build/` — both are git-ignored.
 
 ## JWT keys
 `src/main/resources/{privateKey,publicKey}.pem` are **demo-only** RSA keys and
