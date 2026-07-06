@@ -1,8 +1,8 @@
 package co.atlvending.service;
 
+import co.atlvending.api.dto.RestockRequest;
 import co.atlvending.config.VendingConfig;
 import co.atlvending.domain.Machine;
-import co.atlvending.domain.MachineStatus;
 import co.atlvending.messaging.RestockAlert;
 import co.atlvending.messaging.SaleEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,11 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Lab 05 — Panache persistence for machines.
- * Lab 08 — tracks stock levels so a Kafka sale can trip a restock alert.
+ * Lab 03 — Services + CDI Injection (extracted from the resource layer).
+ * Lab 04 — uses {@link VendingConfig} for restock limits.
+ * Lab 08 — tracks stock levels so a sale can trip a restock alert.
  *
- * Stock is kept in-memory keyed by "machineId:sku" to keep the app
- * self-contained; a production build would persist it.
+ * Stock is kept in-memory keyed by "machineId:sku" to keep the reference app
+ * self-contained; a production build would persist stock in the database.
  */
 @ApplicationScoped
 public class InventoryService {
@@ -28,14 +29,13 @@ public class InventoryService {
     @Inject
     VendingConfig config;
 
-    private static final int DEFAULT_STOCK = 8;
     private final ConcurrentMap<String, Integer> stock = new ConcurrentHashMap<>();
 
     public List<Machine> all() {
         return Machine.listAll();
     }
 
-    public List<Machine> byStatus(MachineStatus status) {
+    public List<Machine> byStatus(co.atlvending.domain.MachineStatus status) {
         return Machine.list("status", status);
     }
 
@@ -52,6 +52,25 @@ public class InventoryService {
         m.persist();
         return m;
     }
+
+    @Transactional
+    public boolean decommission(Long id) {
+        return Machine.deleteById(id);
+    }
+
+    /**
+     * Lab 09 — refill a machine slot. Enforces the configured maximum.
+     */
+    public void restock(Long machineId, RestockRequest req) {
+        if (req.quantity() > config.maxRestockQuantity()) {
+            throw new IllegalArgumentException(
+                    "Restock quantity " + req.quantity() + " exceeds max " + config.maxRestockQuantity());
+        }
+        stock.merge(key(machineId, req.sku()), req.quantity(), Integer::sum);
+    }
+
+    /** Starting stock for a slot the first time it is sold from. */
+    private static final int DEFAULT_STOCK = 8;
 
     /**
      * Lab 08 — decrement stock for a sale and, if it crosses the restock
