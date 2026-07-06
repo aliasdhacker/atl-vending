@@ -21,22 +21,19 @@ runnable Quarkus application. It is configured to run on **Podman** (no Docker).
 
 ### One-time shell setup (each new terminal)
 
+No Testcontainers env vars are needed — the Podman/Ryuk settings are baked into
+the project (`src/main/resources/testcontainers.properties`). You only need JDK,
+Maven/Gradle, and Podman on your PATH (already added to your user PATH):
+
 ```bash
 export JAVA_HOME="/c/Program Files/Java/jdk-21.0.11"
 export PATH="/c/Users/andre/dev/podman:/c/Users/andre/dev/apache-maven-3.9.16/bin:$PATH"
-# Point Quarkus Dev Services / Testcontainers at Podman:
-export DOCKER_HOST="npipe:////./pipe/docker_engine"
-export TESTCONTAINERS_RYUK_DISABLED=true
-export TESTCONTAINERS_CHECKS_DISABLE=true
 ```
 
 PowerShell equivalent:
 ```powershell
 $env:JAVA_HOME="C:\Program Files\Java\jdk-21.0.11"
 $env:Path="C:\Users\andre\dev\podman;C:\Users\andre\dev\apache-maven-3.9.16\bin;$env:Path"
-$env:DOCKER_HOST="npipe:////./pipe/docker_engine"
-$env:TESTCONTAINERS_RYUK_DISABLED="true"
-$env:TESTCONTAINERS_CHECKS_DISABLE="true"
 ```
 
 ### Make sure Podman is running
@@ -52,11 +49,14 @@ Generate it once before the first run:
 ./scripts/gen-keys.sh       # writes src/main/resources/{privateKey,publicKey}.pem
 ```
 
-> **Why these env vars?** Quarkus Dev Services uses Testcontainers (docker-java)
-> to auto-start Postgres and Kafka. Podman forwards the Docker API on the
-> `//./pipe/docker_engine` named pipe, so docker-java talks to Podman
-> transparently. Ryuk (the Testcontainers reaper) is disabled because it is
-> unreliable under rootless Podman; Dev Services cleans up its own containers.
+> **How Podman is wired in.** Quarkus Dev Services uses Testcontainers
+> (docker-java) to auto-start Postgres and Kafka. Podman forwards the Docker API
+> on the `//./pipe/docker_engine` named pipe, so docker-java talks to Podman
+> transparently — no `DOCKER_HOST` needed once `podman machine` is running.
+> The one incompatibility is **Ryuk** (Testcontainers' reaper), which fails on
+> rootless Podman (`Can not connect to Ryuk ... Connection refused`); it's
+> disabled via `src/main/resources/testcontainers.properties`, which both Maven
+> and Gradle pick up automatically. Dev Services clean up their own containers.
 
 ---
 
