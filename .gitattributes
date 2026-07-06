@@ -1,0 +1,13 @@
+# Normalize line endings. Keep shell scripts and the Maven wrapper as LF so
+# they run on Linux/macOS; Windows batch files stay CRLF.
+* text=auto eol=lf
+*.sh    text eol=lf
+mvnw    text eol=lf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+mvnw.cmd text eol=crlf
+
+# Binary
+*.jar   binary
+*.png   binary
+*.jpg   binary
