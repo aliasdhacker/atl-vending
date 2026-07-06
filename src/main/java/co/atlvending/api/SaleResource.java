@@ -3,6 +3,7 @@ package co.atlvending.api;
 import co.atlvending.domain.Sale;
 import co.atlvending.messaging.SaleEvent;
 import co.atlvending.messaging.SaleEventBus;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.smallrye.mutiny.Multi;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -19,15 +20,19 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 import java.time.Instant;
 
 /**
- * Lab 07 — reactive SSE feed.
- * Lab 08 — also emits a Kafka SaleEvent for the RestockMonitor.
- * (Lab 10 adds metrics.)
+ * Labs 07, 08, 10 — recording sales.
+ *   POST /sales        record a sale: persist, publish to the live feed,
+ *                      emit a Kafka SaleEvent, and bump a metric.
+ *   GET  /sales/feed   live Server-Sent Events stream of sales (Mutiny Multi).
  */
 @Path("/sales")
 public class SaleResource {
 
     @Inject
     SaleEventBus events;
+
+    @Inject
+    MeterRegistry registry;
 
     @Channel("sales-out")
     Emitter<SaleEvent> salesOut;
@@ -45,6 +50,12 @@ public class SaleResource {
 
         // Lab 08 — emit to Kafka for the RestockMonitor.
         salesOut.send(new SaleEvent(sale.machineId, sale.productSku, sale.priceCents, sale.occurredAt));
+
+        // Lab 10 — custom metrics.
+        registry.counter("sales.recorded",
+                "machine", String.valueOf(sale.machineId),
+                "sku", sale.productSku).increment();
+        registry.summary("sales.cents").record(sale.priceCents);
 
         return Response.status(Response.Status.CREATED).entity(sale).build();
     }
