@@ -3,38 +3,37 @@ package co.atlvending.api;
 import co.atlvending.api.exception.MachineNotFoundException;
 import co.atlvending.domain.Machine;
 import co.atlvending.domain.MachineStatus;
+import co.atlvending.service.InventoryService;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
 
 /**
- * Lab 02 — REST endpoints with Jakarta REST. Data is held inline for now;
- * Lab 03 extracts this into an InventoryService.
+ * Lab 03 — the resource now delegates to {@link InventoryService} (injected)
+ * instead of holding data inline.
  */
 @Path("/machines")
 @Produces(MediaType.APPLICATION_JSON)
 public class MachineResource {
 
-    private static final List<Machine> MACHINES = List.of(
-            new Machine(1L, "Concourse A Gate 12", MachineStatus.ONLINE),
-            new Machine(2L, "Concourse B Gate 8", MachineStatus.OFFLINE),
-            new Machine(3L, "Downtown Lobby 1", MachineStatus.ONLINE));
+    @Inject
+    InventoryService inventory;
 
     @GET
-    public List<Machine> all() {
-        return MACHINES;
+    public List<Machine> all(@QueryParam("status") MachineStatus status) {
+        return status == null ? inventory.all() : inventory.byStatus(status);
     }
 
     @GET
     @Path("/{id}")
     public Machine one(@PathParam("id") Long id) {
-        return MACHINES.stream()
-                .filter(m -> m.id().equals(id))
-                .findFirst()
+        return inventory.find(id)
                 .orElseThrow(() -> new MachineNotFoundException(id));
     }
 }

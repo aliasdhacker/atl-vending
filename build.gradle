@@ -4,6 +4,18 @@ plugins {
 }
 
 repositories {
+    // NS Corp / Red Hat internal repositories — added only when the matching
+    // property is defined (e.g. in ~/.gradle/gradle.properties), so students who
+    // don't need them are unaffected. allowInsecureProtocol permits http/self-signed TLS.
+    if (project.hasProperty('nscorp_repository')) {
+        maven { url = nscorp_repository; allowInsecureProtocol = true }
+    }
+    if (project.hasProperty('nscorp_nexus_repository')) {
+        maven { url = nscorp_nexus_repository; allowInsecureProtocol = true }
+    }
+    if (project.hasProperty('redhat_artifact_repository')) {
+        maven { url = redhat_artifact_repository; allowInsecureProtocol = true }
+    }
     mavenCentral()
     mavenLocal()
 }
@@ -16,6 +28,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-rest'
     testImplementation 'io.quarkus:quarkus-junit'
+    testImplementation 'io.quarkus:quarkus-junit-mockito'
     testImplementation 'io.rest-assured:rest-assured'
 }
 
