@@ -13,6 +13,8 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-rest'
     testImplementation 'io.quarkus:quarkus-junit'
@@ -35,4 +37,10 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+// Rootless Podman can't run the Testcontainers Ryuk reaper reliably, so the
+// Dev Services containers used by tests must run without it.
+tasks.withType(Test).configureEach {
+    environment 'TESTCONTAINERS_RYUK_DISABLED', 'true'
 }
