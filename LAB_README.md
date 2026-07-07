@@ -41,6 +41,35 @@ $env:Path="C:\Users\andre\dev\podman;C:\Users\andre\dev\apache-maven-3.9.16\bin;
 podman machine start        # if not already running
 podman info                 # should print host details, rootless=true
 ```
+The Podman machine does **not** auto-start after a reboot or logoff — run
+`podman machine start` at the beginning of each session (it's the first thing to
+check if anything container-related fails).
+
+### Podman troubleshooting (read this if a lab hangs)
+**Symptom:** Dev Services hangs or times out starting Postgres, or you see
+`Could not find a valid Docker environment`, or Hibernate reports
+`Datasource '<default>' ... URL is not set`. These almost always mean the
+Podman ↔ Windows pipe went stale (common after sleep/VPN/idle), **not** a bug in
+your code.
+
+**Fix — reset the Podman machine (WSL):**
+```powershell
+podman machine stop
+wsl --shutdown
+Start-Sleep -Seconds 5      # let WSL fully tear down BEFORE starting again
+podman machine start
+```
+- The `Start-Sleep` matters: running `podman machine start` too soon gives
+  `Error: connection "podman-machine-default" not found`. If you see that, just
+  run `podman machine start` once more — it succeeds after WSL settles.
+- This does **not** delete anything — your cached images and the machine survive.
+
+**Cert error pulling the postgres image** (corporate proxy / self-signed TLS)?
+Mark docker.io insecure inside the machine, once per machine:
+```powershell
+podman machine ssh "sudo mkdir -p /etc/containers/registries.conf.d && printf '[[registry]]\nlocation = \"docker.io\"\ninsecure = true\n' | sudo tee /etc/containers/registries.conf.d/99-insecure.conf"
+```
+(Or pre-pull with `podman pull --tls-verify=false docker.io/library/postgres:16-alpine`.)
 
 ### Generate the JWT keys (first time after cloning)
 The RSA key pair is **not** committed (it must never live in a public repo).
