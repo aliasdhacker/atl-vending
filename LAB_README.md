@@ -52,16 +52,18 @@ check if anything container-related fails).
 Podman ↔ Windows pipe went stale (common after sleep/VPN/idle), **not** a bug in
 your code.
 
-**Fix — reset the Podman machine (WSL):**
-```powershell
+**Fix — reset the Podman machine (WSL).** Works in Git Bash *or* PowerShell:
+```bash
 podman machine stop
 wsl --shutdown
-Start-Sleep -Seconds 5      # let WSL fully tear down BEFORE starting again
+sleep 5              # let WSL fully tear down BEFORE starting again
 podman machine start
 ```
-- The `Start-Sleep` matters: running `podman machine start` too soon gives
+- The `sleep 5` matters: running `podman machine start` too soon gives
   `Error: connection "podman-machine-default" not found`. If you see that, just
   run `podman machine start` once more — it succeeds after WSL settles.
+- (`sleep` works in both Git Bash and PowerShell. If you'd typed the PowerShell
+  form `Start-Sleep -Seconds 5` in Git Bash it would error — use `sleep 5`.)
 - This does **not** delete anything — your cached images and the machine survive.
 
 **Cert error pulling the postgres image** (corporate proxy / self-signed TLS)?
