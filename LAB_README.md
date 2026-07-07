@@ -52,18 +52,28 @@ check if anything container-related fails).
 Podman ↔ Windows pipe went stale (common after sleep/VPN/idle), **not** a bug in
 your code.
 
-**Fix — reset the Podman machine (WSL).** Works in Git Bash *or* PowerShell:
+**Fix — reset the Podman machine (WSL).** Run these (Git Bash *or* PowerShell):
 ```bash
 podman machine stop
+taskkill //F //IM win-sshproxy.exe   # kill the leftover pipe forwarder (see note)
 wsl --shutdown
-sleep 5              # let WSL fully tear down BEFORE starting again
+sleep 5                              # let WSL fully tear down BEFORE starting again
 podman machine start
 ```
-- The `sleep 5` matters: running `podman machine start` too soon gives
-  `Error: connection "podman-machine-default" not found`. If you see that, just
-  run `podman machine start` once more — it succeeds after WSL settles.
-- (`sleep` works in both Git Bash and PowerShell. If you'd typed the PowerShell
-  form `Start-Sleep -Seconds 5` in Git Bash it would error — use `sleep 5`.)
+- **The `win-sshproxy` kill is the important one.** `podman machine stop` often
+  leaves its pipe-forwarder (`win-sshproxy.exe`) running; the leftover holds the
+  `docker_engine` pipe, so the next `podman machine start` says
+  **"API forwarding ... is not available"** or **"connection not found"**, and
+  Testcontainers then can't reach Podman. Killing it frees the pipe.
+  - Git Bash: `taskkill //F //IM win-sshproxy.exe`   (the double `//` is required)
+  - PowerShell: `taskkill /F /IM win-sshproxy.exe`
+  - ("process not found" is fine — it just means it already exited.)
+- `sleep 5` matters too: starting too soon after `wsl --shutdown` also gives
+  `connection "podman-machine-default" not found`. If you still see that, just
+  run `podman machine start` again — it succeeds once WSL settles.
+- `sleep` works in both shells; the PowerShell form `Start-Sleep -Seconds 5`
+  errors in Git Bash, so prefer `sleep 5`.
+- None of this deletes anything — your cached images and the machine survive.
 - This does **not** delete anything — your cached images and the machine survive.
 
 **Cert error pulling the postgres image** (corporate proxy / self-signed TLS)?
