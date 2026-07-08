@@ -1,5 +1,7 @@
 pluginManagement {
     repositories {
+        // NS Corp Nexus (proxies Central + Plugin Portal on the NS network)
+        maven { url = 'http://takodana.atldc.nscorp.com:8084/nexus/content/groups/NSRepository/'; allowInsecureProtocol = true }
         mavenCentral()
         gradlePluginPortal()
         mavenLocal()

@@ -7,9 +7,7 @@ repositories {
     // NS Corp / Red Hat internal repositories — added only when the matching
     // property is defined (e.g. in ~/.gradle/gradle.properties), so students who
     // don't need them are unaffected. allowInsecureProtocol permits http/self-signed TLS.
-    if (project.hasProperty('nscorp_repository')) {
-        maven { url = nscorp_repository; allowInsecureProtocol = true }
-    }
+    maven { url = 'http://takodana.atldc.nscorp.com:8084/nexus/content/groups/NSRepository/'; allowInsecureProtocol = true }   // NS Corp Nexus (hardcoded)
     if (project.hasProperty('nscorp_nexus_repository')) {
         maven { url = nscorp_nexus_repository; allowInsecureProtocol = true }
     }
