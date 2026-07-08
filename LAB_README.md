@@ -217,7 +217,7 @@ curl localhost:8080/q/metrics | grep sales_recorded
 ./gradlew quarkusBuild              # runnable JAR in build/quarkus-app/
 ./gradlew build -Dquarkus.container-image.build=true            # build image with Jib
 ./gradlew build -Dquarkus.package.jar.type=uber-jar            # uber-jar, etc.
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true  # native
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false -Dquarkus.native.container-build=true -x test  # native (jar.enabled=false is required with Gradle)
 ```
 
 > Both builds read the same `src/main/resources/application.properties`, so the
