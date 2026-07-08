@@ -8,6 +8,10 @@ runnable Quarkus application. It is configured to run on **Podman** (no Docker).
 - Quarkus 3.37.x · Java 21 · Maven
 - Container runtime: **Podman** (rootless)
 
+> **Running air-gapped / offline?** See [OFFLINE.md](OFFLINE.md) and
+> `scripts/setup-offline.{ps1,sh}` — how to run all 11–12 labs with no internet
+> (pre-loaded images, seeded Gradle cache, offline native build).
+
 ---
 
 ## Prerequisites (already set up on this machine)
