@@ -1,7 +1,11 @@
 pluginManagement {
     repositories {
-        // NS Corp Nexus (proxies Central + Plugin Portal on the NS network)
-        maven { url = 'http://takodana.atldc.nscorp.com:8084/nexus/content/groups/NSRepository/'; allowInsecureProtocol = true }
+        // NS Corp Nexus — hardcoded; activates automatically on the NS network
+        // (host resolves), skipped elsewhere so Central/Plugin Portal still work.
+        def onNsNetwork = { try { InetAddress.getByName('takodana.atldc.nscorp.com'); true } catch (Exception e) { false } }()
+        if (onNsNetwork) {
+            maven { url = 'http://takodana.atldc.nscorp.com:8084/nexus/content/groups/NSRepository/'; allowInsecureProtocol = true }
+        }
         mavenCentral()
         gradlePluginPortal()
         mavenLocal()
